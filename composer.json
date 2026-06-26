@@ -1,0 +1,23 @@
+{
+    "name": "quiss/max-laravel",
+    "description": "MAX Messenger Bot API client for Laravel",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "MaxBot\\": "src/"
+        }
+    },
+    "require": {
+        "php": "^8.2",
+        "guzzlehttp/guzzle": "^7.0",
+        "illuminate/support": "^12.0 || ^13.0"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "MaxBot\\MaxMessengerServiceProvider"
+            ]
+        }
+    }
+}
