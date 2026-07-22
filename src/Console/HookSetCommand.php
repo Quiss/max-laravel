@@ -7,9 +7,15 @@ use MaxBot\MaxBot;
 
 class HookSetCommand extends Command
 {
+    private const DEFAULT_UPDATE_TYPES = [
+        'bot_started',
+        'message_created',
+        'message_callback',
+    ];
+
     protected $signature = 'max:hook:set
         {url? : Webhook URL (defaults to APP_URL/api/max/webhook)}
-        {--update-types= : Comma-separated update types (e.g. bot_started,message_created)}
+        {--update-types= : Comma-separated update types (defaults to bot_started,message_created,message_callback)}
         {--secret= : Webhook secret (defaults to MAX_WEBHOOK_SECRET)}';
 
     protected $description = 'Set the MAX bot webhook (subscribe to updates)';
@@ -22,9 +28,10 @@ class HookSetCommand extends Command
         $secret = $this->option('secret')
             ?? config('max-bot.webhook_secret');
 
-        $updateTypes = $this->option('update-types')
-            ? explode(',', $this->option('update-types'))
-            : [];
+        $updateTypesOption = trim((string) $this->option('update-types'));
+        $updateTypes = $updateTypesOption === ''
+            ? self::DEFAULT_UPDATE_TYPES
+            : array_values(array_filter(array_map('trim', explode(',', $updateTypesOption))));
 
         $this->components->info("Setting webhook to: {$url}");
 

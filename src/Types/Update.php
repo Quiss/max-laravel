@@ -21,12 +21,13 @@ class Update
     public static function fromArray(array $data): self
     {
         $updateType = UpdateType::from($data['update_type']);
+        $user = $data['user'] ?? $data['callback']['user'] ?? null;
 
         return new self(
             updateType: $updateType,
             timestamp: $data['timestamp'] ?? 0,
             message: isset($data['message']) ? Message::fromArray($data['message']) : null,
-            user: isset($data['user']) ? User::fromArray($data['user']) : null,
+            user: is_array($user) ? User::fromArray($user) : null,
             chat: isset($data['chat']) ? Chat::fromArray($data['chat']) : null,
             userLocale: $data['user_locale'] ?? null,
             payload: $data['callback']['payload'] ?? $data['payload'] ?? null,

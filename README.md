@@ -4,6 +4,8 @@ Laravel package for working with the MAX Bot API. It provides a container-resolv
 
 The package name is `quiss/max-laravel`, but the PHP namespace is `MaxBot`.
 
+If you used an older copied version with the `Vibsy\MaxMessenger` namespace, update your app files to `MaxBot`. The package keeps legacy class aliases so installation does not fail during migration, but new code should use the `MaxBot` namespace and `max-bot` config key.
+
 ## Installation
 
 ```bash
@@ -56,6 +58,8 @@ MAX_API_URL=https://platform-api2.max.ru
 ```
 
 `MAX_WEBHOOK_SECRET` is optional, but recommended. When it is set, the published webhook route checks the `X-Max-Bot-Api-Secret` header.
+
+If you previously published the old config, rename `config/max-messenger.php` to `config/max-bot.php` and replace `config('max-messenger...')` usages with `config('max-bot...')`.
 
 ## Webhook
 
