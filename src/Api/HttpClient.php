@@ -3,10 +3,15 @@
 namespace MaxBot\Api;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
+use Psr\Http\Message\ResponseInterface;
 
 class HttpClient
 {
+    /** @var int[] */
+    private const ATTACHMENT_RETRY_DELAYS_MS = [1000, 2000, 4000, 8000, 16000];
+
     private Client $client;
 
     public function __construct(
@@ -42,12 +47,50 @@ class HttpClient
      */
     public function post(string $endpoint, array $body = [], array $query = []): array
     {
-        $response = $this->client->post($endpoint, [
+        $retry = 0;
+
+        while (true) {
+            try {
+                $response = $this->postRequest($endpoint, $body, $query);
+
+                break;
+            } catch (ClientException $exception) {
+                if (! $this->isAttachmentNotReady($endpoint, $exception)
+                    || ! isset(self::ATTACHMENT_RETRY_DELAYS_MS[$retry])) {
+                    throw $exception;
+                }
+
+                $this->sleepBeforeRetry(self::ATTACHMENT_RETRY_DELAYS_MS[$retry]);
+                $retry++;
+            }
+        }
+
+        return json_decode($response->getBody()->getContents(), true) ?? [];
+    }
+
+    protected function postRequest(string $endpoint, array $body, array $query): ResponseInterface
+    {
+        return $this->client->post($endpoint, [
             'json' => $body,
             'query' => $query,
         ]);
+    }
 
-        return json_decode($response->getBody()->getContents(), true) ?? [];
+    protected function sleepBeforeRetry(int $milliseconds): void
+    {
+        usleep($milliseconds * 1000);
+    }
+
+    private function isAttachmentNotReady(string $endpoint, ClientException $exception): bool
+    {
+        if (trim($endpoint, '/') !== 'messages') {
+            return false;
+        }
+
+        $response = $exception->getResponse();
+        $data = $response ? json_decode((string) $response->getBody(), true) : null;
+
+        return is_array($data) && ($data['code'] ?? null) === 'attachment.not.ready';
     }
 
     /**
