@@ -75,6 +75,16 @@ class HttpClient
     }
 
     /**
+     * Upload a file without assuming that the upload server returns JSON.
+     *
+     * @throws GuzzleException
+     */
+    public function uploadFileRaw(string $uploadUrl, string $filePath, string $fieldName = 'data'): string
+    {
+        return $this->doUpload($uploadUrl, $filePath, $fieldName);
+    }
+
+    /**
      * @throws GuzzleException
      */
     private function doUpload(string $uploadUrl, string $filePath, string $fieldName): string

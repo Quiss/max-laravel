@@ -13,7 +13,8 @@ class UploadClient
     /**
      * Upload a file and return the attachment payload for use in messages.
      *
-     * The attachment token comes from the upload server response.
+     * Depending on the MAX upload host, the attachment token may be returned
+     * either with the upload URL or by the upload server after file upload.
      *
      * @param  string  $type  image|video|audio|file
      *
@@ -30,8 +31,23 @@ class UploadClient
             throw new \RuntimeException('Failed to get upload URL from MAX API');
         }
 
-        // Step 2: Upload the file. Audio, video, image, and file tokens are
-        // returned by the upload server after it receives the media bytes.
+        // Some audio/video upload hosts return the token together with the
+        // upload URL and respond with XML such as <retval>1</retval> after
+        // receiving the bytes. Use that token without trying to parse XML.
+        if (in_array($type, ['audio', 'video'], true)
+            && is_string($uploadData['token'] ?? null)
+            && $uploadData['token'] !== '') {
+            $this->httpClient->uploadFileRaw($uploadUrl, $filePath);
+
+            return [
+                'type' => $type,
+                'payload' => [
+                    'token' => $uploadData['token'],
+                ],
+            ];
+        }
+
+        // Other upload hosts return a JSON token after receiving the file.
         $uploadResult = $this->httpClient->uploadFile($uploadUrl, $filePath);
 
         return $this->buildAttachment($type, $uploadResult);
