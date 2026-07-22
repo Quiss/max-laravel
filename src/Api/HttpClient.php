@@ -75,16 +75,6 @@ class HttpClient
     }
 
     /**
-     * Upload file without parsing response (for audio/video where response is not JSON).
-     *
-     * @throws GuzzleException
-     */
-    public function uploadFileRaw(string $uploadUrl, string $filePath, string $fieldName = 'data'): string
-    {
-        return $this->doUpload($uploadUrl, $filePath, $fieldName);
-    }
-
-    /**
      * @throws GuzzleException
      */
     private function doUpload(string $uploadUrl, string $filePath, string $fieldName): string
