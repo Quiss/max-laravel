@@ -131,11 +131,13 @@ class MaxBot
         int $userId,
         string $filePath,
         ?string $caption = null,
-        ?string $title = null
+        ?string $title = null,
+        ?InlineKeyboardMarkup $keyboard = null,
+        string $format = 'html',
     ): Message {
         $attachment = $this->uploader->upload($filePath, 'audio');
 
-        return $this->sendMediaMessage($userId, $attachment, $caption);
+        return $this->sendMediaMessage($userId, $attachment, $caption, $format, $keyboard);
     }
 
     /**
@@ -162,10 +164,16 @@ class MaxBot
         int $userId,
         array $attachment,
         ?string $caption = null,
-        string $format = 'html'
+        string $format = 'html',
+        ?InlineKeyboardMarkup $keyboard = null,
     ): Message {
+        $attachments = [$attachment];
+        if ($keyboard && ! $keyboard->isEmpty()) {
+            $attachments[] = $keyboard->toAttachment();
+        }
+
         $body = [
-            'attachments' => [$attachment],
+            'attachments' => $attachments,
             'format' => $format,
         ];
 
@@ -176,6 +184,27 @@ class MaxBot
         $response = $this->http->post('messages', $body, ['user_id' => $userId]);
 
         return Message::fromArray($response['message'] ?? $response);
+    }
+
+    /**
+     * Edit a message previously sent by the bot.
+     *
+     * @throws GuzzleException
+     */
+    public function editMessage(
+        string $messageId,
+        string $text,
+        ?InlineKeyboardMarkup $keyboard = null,
+        string $format = 'html',
+    ): bool {
+        $body = [
+            'text' => $text,
+            'attachments' => $keyboard && ! $keyboard->isEmpty() ? [$keyboard->toAttachment()] : [],
+            'format' => $format,
+        ];
+        $response = $this->http->put('messages', $body, ['message_id' => $messageId]);
+
+        return ($response['success'] ?? false) === true;
     }
 
     // ──────────────────────────────────────────────────────────────

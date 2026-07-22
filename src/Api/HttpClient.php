@@ -68,6 +68,19 @@ class HttpClient
         return json_decode($response->getBody()->getContents(), true) ?? [];
     }
 
+    /**
+     * @throws GuzzleException
+     */
+    public function put(string $endpoint, array $body = [], array $query = []): array
+    {
+        $response = $this->client->put($endpoint, [
+            'json' => $body,
+            'query' => $query,
+        ]);
+
+        return json_decode($response->getBody()->getContents(), true) ?? [];
+    }
+
     protected function postRequest(string $endpoint, array $body, array $query): ResponseInterface
     {
         return $this->client->post($endpoint, [
