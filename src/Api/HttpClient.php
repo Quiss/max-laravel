@@ -84,7 +84,9 @@ class HttpClient
     protected function postRequest(string $endpoint, array $body, array $query): ResponseInterface
     {
         return $this->client->post($endpoint, [
-            'json' => $body,
+            // Guzzle serializes an empty PHP array as `[]`, while MAX POST
+            // endpoints expect a JSON object even when every field is optional.
+            'json' => $body === [] ? (object) [] : $body,
             'query' => $query,
         ]);
     }

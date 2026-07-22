@@ -2,15 +2,36 @@
 
 namespace MaxBot\Tests;
 
+use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use MaxBot\Api\HttpClient;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
+use ReflectionProperty;
 
 class HttpClientTest extends TestCase
 {
+    public function test_empty_post_body_is_encoded_as_a_json_object(): void
+    {
+        $history = [];
+        $stack = HandlerStack::create(new MockHandler([
+            new Response(200, [], json_encode(['success' => true])),
+        ]));
+        $stack->push(Middleware::history($history));
+        $client = new HttpClient('token');
+        (new ReflectionProperty(HttpClient::class, 'client'))->setValue($client, new Client(['handler' => $stack]));
+
+        $client->post('answers', [], ['callback_id' => 'callback-1']);
+
+        $this->assertSame('{}', (string) $history[0]['request']->getBody());
+        $this->assertSame('callback_id=callback-1', $history[0]['request']->getUri()->getQuery());
+    }
+
     public function test_messages_are_retried_while_an_attachment_is_being_processed(): void
     {
         $client = new RetryHttpClient([
