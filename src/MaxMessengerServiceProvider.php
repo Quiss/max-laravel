@@ -21,6 +21,9 @@ class MaxMessengerServiceProvider extends ServiceProvider
                 token: $config['token'] ?? '',
                 apiUrl: $config['api_url'] ?? 'https://platform-api2.max.ru',
                 timeout: $config['timeout'] ?? 30,
+                attachmentRetryDelaysMs: $config['attachment_retry_delays_ms'] ?? [1000, 2000, 4000, 8000],
+                attachmentRetryTimeout: $config['attachment_retry_timeout'] ?? 20,
+                uploadTimeout: $config['upload_timeout'] ?? 45,
             );
         });
     }

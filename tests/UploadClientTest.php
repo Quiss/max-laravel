@@ -37,6 +37,23 @@ class UploadClientTest extends TestCase
         $this->assertSame(['url' => 'https://upload.max.test/audio', 'path' => '/tmp/song.mp3'], $http->fileUploadRequest);
     }
 
+    public function test_missing_token_errors_do_not_expose_upload_response(): void
+    {
+        foreach (['image', 'file', 'audio', 'video'] as $type) {
+            $http = new FakeHttpClient(
+                uploadSlot: ['url' => 'https://upload.max.test/private-url'],
+                uploadResult: ['private' => 'sensitive-response-data'],
+            );
+            try {
+                (new UploadClient($http))->upload('/unused', $type);
+                $this->fail('Expected missing token error');
+            } catch (\RuntimeException $e) {
+                $this->assertStringNotContainsString('sensitive-response-data', $e->getMessage());
+                $this->assertStringNotContainsString('private-url', $e->getMessage());
+            }
+        }
+    }
+
     public function test_image_uses_the_nested_photo_token(): void
     {
         $http = new FakeHttpClient(

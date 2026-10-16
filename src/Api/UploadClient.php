@@ -69,7 +69,7 @@ class UploadClient
 
             if (! $token) {
                 throw new \RuntimeException(
-                    'Could not find token in photo upload response: '.json_encode($uploadResult)
+                    'Could not find token in photo upload response'
                 );
             }
 
@@ -86,7 +86,7 @@ class UploadClient
 
         if (! $token) {
             throw new \RuntimeException(
-                "Could not find token in {$type} upload response: ".json_encode($uploadResult)
+                "Could not find token in {$type} upload response"
             );
         }
 

@@ -86,7 +86,10 @@ class RetryHttpClient extends HttpClient
 
     public int $requestCount = 0;
 
-    public function __construct(private array $responses) {}
+    public function __construct(private array $responses)
+    {
+        parent::__construct('token');
+    }
 
     protected function postRequest(string $endpoint, array $body, array $query): ResponseInterface
     {

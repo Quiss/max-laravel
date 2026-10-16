@@ -24,8 +24,11 @@ class MaxBot
         private readonly string $token,
         private readonly string $apiUrl = 'https://platform-api2.max.ru',
         private readonly int $timeout = 30,
+        array $attachmentRetryDelaysMs = [1000, 2000, 4000, 8000],
+        float $attachmentRetryTimeout = 20,
+        int $uploadTimeout = 45,
     ) {
-        $this->http = new HttpClient($this->token, $this->apiUrl, $this->timeout);
+        $this->http = new HttpClient($this->token, $this->apiUrl, $this->timeout, $attachmentRetryDelaysMs, $attachmentRetryTimeout, $uploadTimeout);
         $this->uploader = new UploadClient($this->http);
         $this->webhookHandler = new WebhookHandler;
     }
@@ -98,11 +101,12 @@ class MaxBot
         int $userId,
         string $filePath,
         ?string $caption = null,
-        string $format = 'html'
+        string $format = 'html',
+        ?InlineKeyboardMarkup $keyboard = null,
     ): Message {
         $attachment = $this->uploader->upload($filePath, 'image');
 
-        return $this->sendMediaMessage($userId, $attachment, $caption, $format);
+        return $this->sendMediaMessage($userId, $attachment, $caption, $format, $keyboard);
     }
 
     /**
@@ -115,11 +119,13 @@ class MaxBot
         string $filePath,
         ?string $caption = null,
         ?int $width = null,
-        ?int $height = null
+        ?int $height = null,
+        ?InlineKeyboardMarkup $keyboard = null,
+        string $format = 'html',
     ): Message {
         $attachment = $this->uploader->upload($filePath, 'video');
 
-        return $this->sendMediaMessage($userId, $attachment, $caption);
+        return $this->sendMediaMessage($userId, $attachment, $caption, $format, $keyboard);
     }
 
     /**
@@ -148,11 +154,13 @@ class MaxBot
     public function sendDocument(
         int $userId,
         string $filePath,
-        ?string $caption = null
+        ?string $caption = null,
+        ?InlineKeyboardMarkup $keyboard = null,
+        string $format = 'html',
     ): Message {
         $attachment = $this->uploader->upload($filePath, 'file');
 
-        return $this->sendMediaMessage($userId, $attachment, $caption);
+        return $this->sendMediaMessage($userId, $attachment, $caption, $format, $keyboard);
     }
 
     /**
