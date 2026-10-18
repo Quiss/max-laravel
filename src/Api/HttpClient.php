@@ -5,6 +5,8 @@ namespace MaxBot\Api;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Middleware;
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
 class HttpClient
@@ -39,6 +41,16 @@ class HttpClient
                 'Accept' => 'application/json',
             ],
         ]);
+    }
+
+    /**
+     * Register a hook executed before each API request, including attachment retries.
+     *
+     * @param  callable(RequestInterface): void  $callback
+     */
+    public function beforeRequest(callable $callback): void
+    {
+        $this->client->getConfig('handler')->push(Middleware::tap($callback), 'max-before-request');
     }
 
     /**
